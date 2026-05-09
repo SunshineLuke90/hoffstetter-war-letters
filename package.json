@@ -7,9 +7,13 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "convert:pdfs": "node tools/convertPdfs.js",
+    "reorder:pngs": "node tools/reorderPngs.js"
   },
   "dependencies": {
+    "@awesome.me/webawesome": "^3.6.0",
+    "convertapi-js": "^1.0.8",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },

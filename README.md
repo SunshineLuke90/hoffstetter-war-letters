@@ -1,73 +1,8 @@
-# React + TypeScript + Vite
+# Hoffstetter War Letters
+This project is a historical preservation project, with multiple goals. The primary goal is to preserve the history through letters that my family has kept and gathered for years. These letters were written during World War II, and were sent as love letters between my great grandfather Ollie, and my great grandmother Martha. We want to preserve these letters by scanning them, but also by transcribing them, and publishing a website to make it easy to read and explore the history during this time period.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+There are a few secondary goals to this project as well. One is to teach my parents how to use Git, and subsequently GitHub. They have put in a ton of work to scan and format the letters into easy to handle pdf files, which is a huge part of this project, and the only way that the rest of it can happen. Having them use Git to collaborate on the project while I am working on transcriptions and building a website will both improve their learning, and make it easier to collaborate in real time, rather than waiting until the scanning phase is entirely complete.
 
-Currently, two official plugins are available:
+ I also wanted to learn how to train an AI model on the letters, to hopefully make it easy to scan and transcribe Ollie's handwriting. A big secondary portion of the project is just taking the digital files, and making smart choices about how they need to be formatted and stored so that they can be easily aggregated and used within a website. Once a website is built, it's something that could be shared with the entire family, in a way that everyone could easily digest.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+I have worked on much of this project with the assistance of various AI, including using the Transkribus tools for AI transcription, and using various models through GitHub Copilot to assist with the website design, and with creating helper tools for managing the heaps of files that inevitably get generated. My goal is that even though much of the project is fueled by AI (And would take 10x as long without the help of the AI transcriptions), I don't want the site to look like a garbled AI mess at the end of the day. 
