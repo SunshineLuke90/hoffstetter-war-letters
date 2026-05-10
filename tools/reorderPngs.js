@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 
 const ROOT_DIR = process.cwd()
-const DEFAULT_TARGET_DIR = path.join(ROOT_DIR, 'letters', 'pngs')
+const DEFAULT_TARGET_DIR = path.join(ROOT_DIR, 'letters', 'Ollie', 'pngs')
 const TMP_PREFIX = '__tmp_reorder_page__'
 
 function printHelpAndExit(code) {
@@ -11,7 +11,7 @@ Usage:
 	node tools/reorderPngs.js [options]
 
 Options:
-	-d, --dir <path>        Target directory (default: letters/pngs)
+	-d, --dir <path>        Target directory (default: letters/Ollie/pngs)
 			--recursive         Process all child folders recursively
 			--dry-run           Show planned renames without changing files
 			--prefix <value>    Page filename prefix (default: page)
@@ -23,9 +23,9 @@ How it works:
 	- Page numbers are compacted to start from 1 in each processed folder.
 
 Examples:
-	npm run reorder:pngs -- --dir letters/pngs/1945-05-14
-	npm run reorder:pngs -- --dir letters/pngs --recursive
-	npm run reorder:pngs -- --dir letters/pngs --recursive --dry-run
+	npm run reorder:pngs -- --dir letters/Ollie/pngs/1945-05-14
+	npm run reorder:pngs -- --dir letters/Ollie/pngs --recursive
+	npm run reorder:pngs -- --dir letters/Ollie/pngs --recursive --dry-run
 `)
 	process.exit(code)
 }

@@ -2,8 +2,8 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 
 const ROOT_DIR = process.cwd()
-const DEFAULT_INPUT_DIR = path.join(ROOT_DIR, 'letters')
-const DEFAULT_OUTPUT_DIR = path.join(ROOT_DIR, 'letters', 'pngs')
+const DEFAULT_INPUT_DIR = path.join(ROOT_DIR, 'letters', 'Ollie')
+const DEFAULT_OUTPUT_DIR = path.join(ROOT_DIR, 'letters', 'Ollie', 'pngs')
 const CONVERT_API_HOST = 'v2.convertapi.com'
 
 function parseArgs(argv) {
@@ -85,8 +85,8 @@ Usage:
 	node tools/convertPdfs.js [options]
 
 Options:
-	-i, --input <dir>      Input folder containing PDF files (default: letters)
-	-o, --output <dir>     Output folder for PNG pages (default: letters/pngs)
+	-i, --input <dir>      Input folder containing PDF files (default: letters/Ollie)
+	-o, --output <dir>     Output folder for PNG pages (default: letters/Ollie/pngs)
 			--from <YYYY-MM-DD>  Inclusive start date based on filename
 			--to <YYYY-MM-DD>    Inclusive end date based on filename
 			--secret <value>     ConvertAPI secret (or use CONVERTAPI_SECRET)
@@ -160,6 +160,15 @@ async function downloadToFile(url, targetPath) {
 	await fs.writeFile(targetPath, buffer)
 }
 
+async function pathExists(targetPath) {
+	try {
+		await fs.access(targetPath)
+		return true
+	} catch {
+		return false
+	}
+}
+
 async function countExistingPngs(dirPath) {
 	try {
 		const names = await fs.readdir(dirPath)
@@ -230,9 +239,11 @@ async function convertSinglePdf(secret, pdfPath, outputRoot, overwrite) {
 	const outDir = path.join(outputRoot, baseName)
 
 	if (!overwrite) {
-		const existingCount = await countExistingPngs(outDir)
-		if (existingCount > 0) {
-			console.log(`Skipping ${baseName}.pdf (found ${existingCount} existing PNG files)`)
+		const outputFolderExists = await pathExists(outDir)
+		if (outputFolderExists) {
+			const existingCount = await countExistingPngs(outDir)
+			const existingPngText = existingCount > 0 ? ` with ${existingCount} existing PNG files` : ''
+			console.log(`Skipping ${baseName}.pdf (output folder already exists${existingPngText})`)
 			return { skipped: true, pages: existingCount }
 		}
 	}
