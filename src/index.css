@@ -1,33 +1,56 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600;700&display=swap');
 
 :root {
-  --paper: #f5efe4;
-  --paper-strong: #fbf7f0;
-  --paper-deep: #efe2cf;
-  --ink: #40362f;
-  --ink-strong: #1f1713;
-  --muted: #6d6056;
-  --muted-strong: #7f6c5e;
-  --line-soft: rgba(104, 80, 58, 0.14);
-  --line-strong: rgba(104, 80, 58, 0.22);
-  --accent: #9b5f38;
-  --accent-soft: rgba(155, 95, 56, 0.12);
-  --shadow-soft: 0 18px 40px rgba(73, 48, 25, 0.08);
-  --display: 'Cormorant Garamond', Georgia, serif;
-  --body: 'Source Sans 3', 'Trebuchet MS', sans-serif;
-  --mono: 'IBM Plex Mono', 'SFMono-Regular', monospace;
-  font-family: var(--body);
+  --wa-font-family-heading: 'Cormorant Garamond', Georgia, serif;
+  --wa-font-family-body: 'Source Sans 3', 'Trebuchet MS', sans-serif;
+  --wa-font-family-code: 'IBM Plex Mono', 'SFMono-Regular', monospace;
+  --wa-color-brand: #9b5f38;
+  --wa-color-text-normal: #40362f;
+  --wa-color-text-quiet: #7f6c5e;
+  --wa-color-surface-default: #f5efe4;
+  --wa-color-surface-raised: #fbf7f0;
+  --wa-color-surface-lowered: #efe2cf;
+  --wa-color-border-normal: color-mix(in srgb, var(--wa-color-brand) 14%, transparent);
+  --wa-color-border-loud: color-mix(in srgb, var(--wa-color-brand) 22%, transparent);
+  --wa-color-border-quiet: color-mix(in srgb, var(--wa-color-brand) 8%, transparent);
+  --wa-color-focus: color-mix(in srgb, var(--wa-color-brand) 72%, white);
+  --wa-shadow-m: 0 18px 40px color-mix(in srgb, var(--wa-color-brand) 18%, transparent);
+  --wa-focus-ring-style: solid;
+  --wa-focus-ring-width: 2px;
+  --wa-focus-ring-offset: 1px;
+
+  --wa-archive-text-strong: #1f1713;
+  --wa-archive-line-soft: var(--wa-color-border-normal);
+  --wa-archive-line-strong: var(--wa-color-border-loud);
+  --wa-archive-shadow-soft: var(--wa-shadow-m);
+  --wa-archive-surface-frost: color-mix(in srgb, var(--wa-color-surface-raised) 82%, transparent);
+  --wa-archive-surface-panel: color-mix(in srgb, var(--wa-color-surface-raised) 88%, transparent);
+  --wa-archive-surface-panel-strong: color-mix(in srgb, var(--wa-color-surface-raised) 92%, transparent);
+  --wa-archive-surface-panel-bright: color-mix(in srgb, var(--wa-color-surface-raised) 96%, transparent);
+  --wa-archive-surface-dashed: color-mix(in srgb, var(--wa-color-surface-raised) 70%, transparent);
+  --wa-archive-surface-hover: color-mix(in srgb, var(--wa-color-brand) 8%, transparent);
+  --wa-archive-selected-top: color-mix(in srgb, var(--wa-color-brand) 18%, var(--wa-color-surface-lowered));
+  --wa-archive-selected-bottom: color-mix(in srgb, var(--wa-color-brand) 8%, var(--wa-color-surface-raised));
+  --wa-archive-selected-border: color-mix(in srgb, var(--wa-color-brand) 28%, transparent);
+  --wa-archive-selected-outline: color-mix(in srgb, var(--wa-color-brand) 10%, transparent);
+  --wa-archive-focus-outline: color-mix(in srgb, var(--wa-color-brand) 65%, white);
+  --wa-archive-scan-surface: color-mix(in srgb, var(--wa-color-surface-lowered) 88%, white);
+  --wa-archive-scan-shadow: 0 14px 26px color-mix(in srgb, var(--wa-color-brand) 20%, transparent);
+
+  font-family: var(--wa-font-family-body);
   font-size: 18px;
   line-height: 1.6;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: var(--ink);
+  color: var(--wa-color-text-normal);
   background:
-    radial-gradient(circle at top left, rgba(222, 197, 161, 0.28), transparent 34%),
-    radial-gradient(circle at top right, rgba(201, 112, 73, 0.14), transparent 28%),
-    linear-gradient(180deg, #f8f3ea 0%, #f3ebdf 100%);
+    radial-gradient(circle at top left, color-mix(in srgb, var(--wa-color-brand) 22%, transparent), transparent 34%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--wa-color-brand) 14%, transparent), transparent 28%),
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--wa-color-surface-raised) 86%, white) 0%,
+      color-mix(in srgb, var(--wa-color-surface-default) 92%, var(--wa-color-surface-lowered)) 100%);
 }
 
 * {
@@ -49,8 +72,8 @@ body::before {
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(104, 80, 58, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(104, 80, 58, 0.03) 1px, transparent 1px);
+    linear-gradient(color-mix(in srgb, var(--wa-color-brand) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--wa-color-brand) 5%, transparent) 1px, transparent 1px);
   background-size: 28px 28px;
   mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.45), transparent 88%);
 }
@@ -71,8 +94,8 @@ p {
 h1,
 h2,
 h3 {
-  color: var(--ink-strong);
-  font-family: var(--display);
+  color: var(--wa-archive-text-strong);
+  font-family: var(--wa-font-family-heading);
   font-weight: 600;
   line-height: 0.95;
   letter-spacing: -0.03em;

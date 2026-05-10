@@ -1,5 +1,18 @@
 type LetterPageKind = 'envelope' | 'page' | 'other'
 
+export type LetterSenderId = 'ollie' | 'martha'
+
+export type LetterSenderOption = {
+  id: LetterSenderId
+  label: string
+  folderName: string
+}
+
+export const senderOptions: LetterSenderOption[] = [
+  { id: 'ollie', label: 'Ollie', folderName: 'Ollie' },
+  { id: 'martha', label: 'Martha', folderName: 'Martha' },
+]
+
 export type LetterPage = {
   id: string
   name: string
@@ -11,6 +24,7 @@ export type LetterPage = {
 
 export type Letter = {
   id: string
+  sender: LetterSenderId
   title: string
   dateLabel: string
   pdfSrc?: string
@@ -20,18 +34,18 @@ export type Letter = {
   pageCount: number
 }
 
-const imageModules = import.meta.glob('/letters/pngs/*/*.{png,jpg,jpeg,webp}', {
+const imageModules = import.meta.glob('/letters/*/pngs/*/*.{png,jpg,jpeg,webp}', {
   eager: true,
   import: 'default',
 }) as Record<string, string>
 
-const textModules = import.meta.glob('/letters/pngs/*/*.txt', {
+const textModules = import.meta.glob('/letters/*/pngs/*/*.txt', {
   eager: true,
   query: '?raw',
   import: 'default',
 }) as Record<string, string>
 
-const pdfModules = import.meta.glob('/letters/*.pdf', {
+const pdfModules = import.meta.glob('/letters/*/*.pdf', {
   eager: true,
   import: 'default',
 }) as Record<string, string>
@@ -43,8 +57,28 @@ const dateFormatter = new Intl.DateTimeFormat('en-US', {
 })
 
 function getLetterIdFromPath (path: string) {
-  const match = path.match(/\/letters\/(?:pngs\/)?([^/.]+)(?:\/|\.)/)
-  return match?.[1]
+  const pageMatch = path.match(/^\/letters\/[^/]+\/pngs\/([^/]+)\//)
+  if (pageMatch) {
+    return pageMatch[1]
+  }
+
+  const fileName = path.split('/').pop()
+  if (!fileName) {
+    return undefined
+  }
+
+  return fileName.replace(/\.[^.]+$/, '')
+}
+
+function getSenderFromPath (path: string) {
+  const senderFolder = path.match(/^\/letters\/([^/]+)\//)?.[1]
+  if (!senderFolder) {
+    return undefined
+  }
+
+  return senderOptions.find(
+    (senderOption) => senderOption.folderName.toLowerCase() === senderFolder.toLowerCase(),
+  )?.id
 }
 
 function getPageIdFromPath (path: string) {
@@ -64,20 +98,33 @@ function getPageMeta (pageId: string): Pick<LetterPage, 'kind' | 'sortOrder'> {
   return { kind: 'other', sortOrder: Number.MAX_SAFE_INTEGER }
 }
 
+function formatLetterDateLabel (letterId: string) {
+  const letterDateId = letterId.match(/^\d{4}-\d{2}-\d{2}/)?.[0] ?? letterId
+  const letterDate = new Date(`${letterDateId}T12:00:00`)
+
+  if (Number.isNaN(letterDate.getTime())) {
+    return letterDateId
+  }
+
+  return dateFormatter.format(letterDate)
+}
+
 function buildLetters () {
   const letters = new Map<string, Letter>()
 
   for (const [path, pdfSrc] of Object.entries(pdfModules)) {
+    const sender = getSenderFromPath(path)
     const letterId = getLetterIdFromPath(path)
-    if (!letterId) {
+    if (!sender || !letterId) {
       continue
     }
 
-    const letterDate = new Date(`${letterId}T12:00:00`)
-    letters.set(letterId, {
+    const letterKey = `${sender}:${letterId}`
+    letters.set(letterKey, {
       id: letterId,
-      title: `Letter from ${dateFormatter.format(letterDate)}`,
-      dateLabel: dateFormatter.format(letterDate),
+      sender,
+      title: `Letter from ${formatLetterDateLabel(letterId)}`,
+      dateLabel: formatLetterDateLabel(letterId),
       pdfSrc,
       pages: [],
       hasTranscription: false,
@@ -87,19 +134,21 @@ function buildLetters () {
   }
 
   const upsertPage = (path: string, value: string, type: 'image' | 'text') => {
+    const sender = getSenderFromPath(path)
     const letterId = getLetterIdFromPath(path)
     const pageId = getPageIdFromPath(path)
-    if (!letterId || !pageId) {
+    if (!sender || !letterId || !pageId) {
       return
     }
 
-    const existingLetter = letters.get(letterId)
+    const letterKey = `${sender}:${letterId}`
+    const existingLetter = letters.get(letterKey)
     if (!existingLetter) {
-      const letterDate = new Date(`${letterId}T12:00:00`)
-      letters.set(letterId, {
+      letters.set(letterKey, {
         id: letterId,
-        title: `Letter from ${dateFormatter.format(letterDate)}`,
-        dateLabel: dateFormatter.format(letterDate),
+        sender,
+        title: `Letter from ${formatLetterDateLabel(letterId)}`,
+        dateLabel: formatLetterDateLabel(letterId),
         pages: [],
         hasTranscription: false,
         transcribedPageCount: 0,
@@ -107,7 +156,7 @@ function buildLetters () {
       })
     }
 
-    const letter = letters.get(letterId)
+    const letter = letters.get(letterKey)
     if (!letter) {
       return
     }
@@ -140,6 +189,17 @@ function buildLetters () {
     upsertPage(path, transcription, 'text')
   }
 
+  const senderOrder = senderOptions.reduce<Record<LetterSenderId, number>>(
+    (order, senderOption, index) => {
+      order[senderOption.id] = index
+      return order
+    },
+    {
+      ollie: 0,
+      martha: 1,
+    },
+  )
+
   return Array.from(letters.values())
     .map((letter) => {
       letter.pages.sort((left, right) => {
@@ -158,15 +218,31 @@ function buildLetters () {
 
       return letter
     })
-    .sort((left, right) => left.id.localeCompare(right.id))
+    .sort((left, right) => {
+      if (left.sender !== right.sender) {
+        return senderOrder[left.sender] - senderOrder[right.sender]
+      }
+
+      return left.id.localeCompare(right.id)
+    })
 }
 
 export const letters = buildLetters()
 
-export function getLetterById (letterId: string | null) {
+export function getLettersBySender (sender: LetterSenderId) {
+  return letters.filter((letter) => letter.sender === sender)
+}
+
+export function getLetterById (letterId: string | null, sender?: LetterSenderId) {
   if (!letterId) {
     return undefined
   }
 
-  return letters.find((letter) => letter.id === letterId)
+  return letters.find((letter) => {
+    if (sender && letter.sender !== sender) {
+      return false
+    }
+
+    return letter.id === letterId
+  })
 }
