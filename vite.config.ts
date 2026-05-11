@@ -1,11 +1,10 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import Sonda from 'sonda/vite'
+import { reactRouter } from '@react-router/dev/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
   build: {
     sourcemap: true,
   },
-  plugins: [react(), Sonda()],
+  plugins: [reactRouter()],
 })

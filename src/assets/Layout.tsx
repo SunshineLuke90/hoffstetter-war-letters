@@ -1,17 +1,33 @@
 import { type ReactNode } from 'react'
-import { WaButton, WaDivider } from '@awesome.me/webawesome/dist/react'
+import { useLocation, useNavigate } from 'react-router'
 
 type LayoutProps = {
-  activeView: string
-  onNavigate: (viewId: string) => void
-  views: Array<{
-    id: string
-    label: string
-  }>
   children: ReactNode
 }
 
-function Layout ({ activeView, onNavigate, views, children }: LayoutProps) {
+const views = [
+  { id: 'home', label: 'Home', path: '/' },
+  { id: 'letters', label: 'Letters', path: '/letters' },
+  { id: 'photos', label: 'Photos', path: '/photos' },
+] as const
+
+function getActiveViewId (pathname: string) {
+  if (pathname.startsWith('/letters')) {
+    return 'letters'
+  }
+
+  if (pathname.startsWith('/photos')) {
+    return 'photos'
+  }
+
+  return 'home'
+}
+
+function Layout ({ children }: LayoutProps) {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const activeView = getActiveViewId(location.pathname)
+
   return (
     <main className="app-shell">
       <section className="hero-panel">
@@ -29,23 +45,23 @@ function Layout ({ activeView, onNavigate, views, children }: LayoutProps) {
             const isActive = view.id === activeView
 
             return (
-              <WaButton
+              <wa-button
                 appearance={isActive ? 'filled-outlined' : 'plain'}
                 className="view-nav__button"
                 data-selected={isActive ? 'true' : 'false'}
                 key={view.id}
-                onClick={() => onNavigate(view.id)}
+                onClick={() => navigate(view.path, { preventScrollReset: true })}
                 size="small"
                 variant="neutral"
               >
                 {view.label}
-              </WaButton>
+              </wa-button>
             )
           })}
         </nav>
       </section>
 
-      <WaDivider className="section-divider" />
+      <wa-divider className="section-divider" />
 
       {children}
     </main>

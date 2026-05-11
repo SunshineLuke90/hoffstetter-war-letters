@@ -1,11 +1,5 @@
-import { startTransition, useEffect, useState } from 'react'
-import {
-  WaBadge,
-  WaButton,
-  WaCallout,
-  WaCard,
-  WaDivider,
-} from '@awesome.me/webawesome/dist/react'
+import { useEffect, useState } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router'
 import {
   getLetterById,
   getLettersBySender,
@@ -22,6 +16,12 @@ type Selection = {
   pageId: string | null
 }
 
+type LettersRouteParams = {
+  senderId?: string
+  letterId?: string
+  pageId?: string
+}
+
 const totalLetters = letters.length
 const transcribedLetters = letters.filter((letter) => letter.hasTranscription).length
 
@@ -33,39 +33,24 @@ function getDefaultLetterForSender (senderId: LetterSenderId) {
   return senderLetters.find((letter) => letter.hasTranscription) ?? senderLetters[0]
 }
 
-function getSenderFromUrlParam (value: string | null): LetterSenderId {
+function getSenderFromRouteParam (value: string | undefined): LetterSenderId {
   const normalizedValue = value?.toLowerCase()
   const matchedSender = senderOptions.find((sender) => sender.id === normalizedValue)
   return matchedSender?.id ?? defaultSenderId
 }
 
-function readSelectionFromUrl (): Selection {
-  const params = new URLSearchParams(window.location.search)
-  return {
-    senderId: getSenderFromUrlParam(params.get('sender')),
-    letterId: params.get('letter'),
-    pageId: params.get('page'),
-  }
-}
+function buildLettersPath (selection: Selection) {
+  const baseSegments = ['/letters', selection.senderId]
 
-function syncSelectionToUrl (selection: Selection, mode: 'push' | 'replace') {
-  const url = new URL(window.location.href)
-
-  url.searchParams.set('sender', selection.senderId)
-
-  if (selection.letterId) {
-    url.searchParams.set('letter', selection.letterId)
-  } else {
-    url.searchParams.delete('letter')
+  if (!selection.letterId) {
+    return baseSegments.join('/')
   }
 
-  if (selection.pageId) {
-    url.searchParams.set('page', selection.pageId)
-  } else {
-    url.searchParams.delete('page')
+  if (!selection.pageId) {
+    return [...baseSegments, selection.letterId].join('/')
   }
 
-  window.history[mode === 'push' ? 'pushState' : 'replaceState']({}, '', url)
+  return [...baseSegments, selection.letterId, selection.pageId].join('/')
 }
 
 function resolveSelection (selection: Selection) {
@@ -135,9 +120,32 @@ function getStackPages (letter: Letter | undefined, selectedPageIndex: number, m
 }
 
 function Letters () {
-  const [selection, setSelection] = useState<Selection>(() => readSelectionFromUrl())
+  const { senderId, letterId, pageId } = useParams<LettersRouteParams>()
+  const location = useLocation()
+  const navigate = useNavigate()
   const [isTimelineCollapsed, setIsTimelineCollapsed] = useState(false)
+
+  const selection: Selection = {
+    senderId: getSenderFromRouteParam(senderId),
+    letterId: letterId ?? null,
+    pageId: pageId ?? null,
+  }
+
   const { senderLetters, selectedLetter, selectedPage } = resolveSelection(selection)
+
+  const normalizedSelection: Selection = {
+    senderId: selection.senderId,
+    letterId: selectedLetter?.id ?? null,
+    pageId: selectedPage?.id ?? null,
+  }
+
+  const canonicalPath = buildLettersPath(normalizedSelection)
+
+  useEffect(() => {
+    if (location.pathname !== canonicalPath) {
+      navigate(canonicalPath, { replace: true, preventScrollReset: true })
+    }
+  }, [canonicalPath, location.pathname, navigate])
 
   const activeSender = senderOptions.find((sender) => sender.id === selection.senderId)
     ?? senderOptions[0]
@@ -162,51 +170,18 @@ function Letters () {
     },
   )
 
-  useEffect(() => {
-    const handlePopState = () => {
-      startTransition(() => {
-        setSelection(readSelectionFromUrl())
-      })
-    }
-
-    window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
-  }, [])
-
-  useEffect(() => {
-    const normalizedSelection = {
-      senderId: selection.senderId,
-      letterId: selectedLetter?.id ?? null,
-      pageId: selectedPage?.id ?? null,
-    }
-
-    if (
-      normalizedSelection.senderId !== selection.senderId
-      ||
-      normalizedSelection.letterId !== selection.letterId
-      || normalizedSelection.pageId !== selection.pageId
-    ) {
-      startTransition(() => {
-        setSelection(normalizedSelection)
-      })
-      return
-    }
-
-    syncSelectionToUrl(normalizedSelection, 'replace')
-  }, [selectedLetter, selectedPage, selection.senderId, selection.letterId, selection.pageId])
-
   if (!letters.length) {
     return (
       <section className="empty-state-shell">
-        <WaCard className="empty-card" appearance="outlined">
+        <wa-card className="empty-card" appearance="outlined">
           <div slot="header" className="card-header">
             <p className="eyebrow">Hoffstetter War Letters</p>
             <h2>No letters found</h2>
           </div>
-          <WaCallout appearance="filled-outlined" variant="warning" size="small">
+          <wa-callout appearance="filled-outlined" variant="warning" size="small">
             Add PDFs or scanned pages to the letters directory to populate the archive.
-          </WaCallout>
-        </WaCard>
+          </wa-callout>
+        </wa-card>
       </section>
     )
   }
@@ -222,57 +197,58 @@ function Letters () {
     ? selectedPageIndex >= 0 && selectedPageIndex < selectedLetter.pages.length - 1
     : false
 
-  const selectSender = (senderId: LetterSenderId) => {
-    if (senderId === selection.senderId) {
-      return
-    }
-
-    const nextLetter = getDefaultLetterForSender(senderId)
-    const nextSelection = {
-      senderId,
-      letterId: nextLetter?.id ?? null,
-      pageId: nextLetter?.pages[0]?.id ?? null,
-    }
-
-    syncSelectionToUrl(nextSelection, 'push')
-    startTransition(() => {
-      setSelection(nextSelection)
+  const navigateToSelection = (nextSelection: Selection, mode: 'push' | 'replace') => {
+    navigate(buildLettersPath(nextSelection), {
+      replace: mode === 'replace',
+      preventScrollReset: true,
     })
   }
 
-  const selectLetter = (letterId: string) => {
-    const nextLetter = getLetterById(letterId, selection.senderId)
+  const selectSender = (nextSenderId: LetterSenderId) => {
+    if (nextSenderId === selection.senderId) {
+      return
+    }
+
+    const nextLetter = getDefaultLetterForSender(nextSenderId)
+    navigateToSelection(
+      {
+        senderId: nextSenderId,
+        letterId: nextLetter?.id ?? null,
+        pageId: nextLetter?.pages[0]?.id ?? null,
+      },
+      'push',
+    )
+  }
+
+  const selectLetter = (nextLetterId: string) => {
+    const nextLetter = getLetterById(nextLetterId, selection.senderId)
     if (!nextLetter) {
       return
     }
 
-    const nextSelection = {
-      senderId: selection.senderId,
-      letterId: nextLetter.id,
-      pageId: nextLetter.pages[0]?.id ?? null,
-    }
-
-    syncSelectionToUrl(nextSelection, 'push')
-    startTransition(() => {
-      setSelection(nextSelection)
-    })
+    navigateToSelection(
+      {
+        senderId: selection.senderId,
+        letterId: nextLetter.id,
+        pageId: nextLetter.pages[0]?.id ?? null,
+      },
+      'push',
+    )
   }
 
-  const selectPage = (pageId: string) => {
+  const selectPage = (nextPageId: string) => {
     if (!selectedLetter) {
       return
     }
 
-    const nextSelection = {
-      senderId: selection.senderId,
-      letterId: selectedLetter.id,
-      pageId,
-    }
-
-    syncSelectionToUrl(nextSelection, 'replace')
-    startTransition(() => {
-      setSelection(nextSelection)
-    })
+    navigateToSelection(
+      {
+        senderId: selection.senderId,
+        letterId: selectedLetter.id,
+        pageId: nextPageId,
+      },
+      'replace',
+    )
   }
 
   const selectAdjacentPage = (offset: -1 | 1) => {
@@ -291,21 +267,21 @@ function Letters () {
   return (
     <section className="letters-page">
       <section className="hero-stats" aria-label="Archive summary">
-        <WaCard className="stat-card" appearance="plain">
+        <wa-card className="stat-card" appearance="plain">
           <p className="stat-value">{totalLetters}</p>
           <p className="stat-label">catalogued letters</p>
-        </WaCard>
-        <WaCard className="stat-card" appearance="plain">
+        </wa-card>
+        <wa-card className="stat-card" appearance="plain">
           <p className="stat-value">{yearGroups.length}</p>
           <p className="stat-label">years spanned</p>
-        </WaCard>
-        <WaCard className="stat-card" appearance="plain">
+        </wa-card>
+        <wa-card className="stat-card" appearance="plain">
           <p className="stat-value">{transcribedLetters}</p>
           <p className="stat-label">letters with transcripts</p>
-        </WaCard>
+        </wa-card>
       </section>
 
-      <WaDivider className="section-divider" />
+      <wa-divider className="section-divider" />
 
       <section className={`content-grid${isTimelineCollapsed ? ' content-grid--timeline-collapsed' : ''}`}>
         <aside
@@ -313,7 +289,7 @@ function Letters () {
           className={`timeline-column${isTimelineCollapsed ? ' timeline-column--collapsed' : ''}`}
         >
           <div className="timeline-toggle-rail">
-            <WaButton
+            <wa-button
               appearance="plain"
               aria-expanded={!isTimelineCollapsed}
               aria-label={isTimelineCollapsed ? 'Expand letters by date panel' : 'Collapse letters by date panel'}
@@ -323,7 +299,7 @@ function Letters () {
               variant="neutral"
             >
               {isTimelineCollapsed ? '>' : '<'}
-            </WaButton>
+            </wa-button>
           </div>
 
           {!isTimelineCollapsed ? (
@@ -336,22 +312,21 @@ function Letters () {
                     const count = senderLetterCounts[sender.id]
 
                     return (
-                      <WaButton
+                      <wa-button
                         appearance={isActive ? 'filled-outlined' : 'plain'}
                         className="sender-toggle__button"
                         data-selected={isActive ? 'true' : 'false'}
                         onClick={() => selectSender(sender.id)}
-                        role="tab"
                         size="small"
                         variant="neutral"
                       >
                         {sender.label} ({count})
-                      </WaButton>
+                      </wa-button>
                     )
                   })}
                 </div>
                 <p className="timeline-copy">
-                  Showing letters from {activeSender.label}. Each entry opens in place and updates the URL.
+                  Showing letters from {activeSender.label}. Each entry updates the route path.
                 </p>
               </div>
 
@@ -367,7 +342,7 @@ function Letters () {
 
                           return (
                             <li key={`${letter.sender}-${letter.id}`}>
-                              <WaButton
+                              <wa-button
                                 aria-current={isSelected ? 'page' : undefined}
                                 appearance={isSelected ? 'filled-outlined' : 'plain'}
                                 className="timeline-button"
@@ -380,7 +355,7 @@ function Letters () {
                                   <span className="timeline-button__date">{letter.dateLabel}</span>
                                   <span className="timeline-button__meta">{status.helperLabel}</span>
                                 </span>
-                              </WaButton>
+                              </wa-button>
                             </li>
                           )
                         })}
@@ -403,7 +378,7 @@ function Letters () {
 
         <section className="reader-column" aria-live="polite">
           <section className="mobile-letter-menu" aria-label="Letter menu">
-            <WaCard className="mobile-letter-menu__card" appearance="outlined">
+            <wa-card className="mobile-letter-menu__card" appearance="outlined">
               <div className="mobile-letter-menu__header">
                 <div>
                   <h2 className="mobile-letter-menu__title">Choose a letter</h2>
@@ -414,17 +389,16 @@ function Letters () {
                     const count = senderLetterCounts[sender.id]
 
                     return (
-                      <WaButton
+                      <wa-button
                         appearance={isActive ? 'filled-outlined' : 'plain'}
                         className="sender-toggle__button"
                         data-selected={isActive ? 'true' : 'false'}
                         onClick={() => selectSender(sender.id)}
-                        role="tab"
                         size="small"
                         variant="neutral"
                       >
                         {sender.label} ({count})
-                      </WaButton>
+                      </wa-button>
                     )
                   })}
                 </div>
@@ -457,27 +431,27 @@ function Letters () {
                   No letters from {activeSender.label} are available yet.
                 </p>
               )}
-            </WaCard>
+            </wa-card>
           </section>
 
-          <WaCard className="reader-card" appearance="outlined">
+          <wa-card className="reader-card" appearance="outlined">
             <div slot="header" className="reader-header">
               <div>
                 <h2>{selectedLetter ? selectedLetter.dateLabel : `${activeSender.label} letters`}</h2>
               </div>
               <div className="reader-header__actions">
                 {selectedStatus ? (
-                  <WaBadge
+                  <wa-badge
                     appearance="outlined"
                     className="status-badge"
                     pill
                     variant={selectedStatus.variant}
                   >
                     {selectedStatus.badgeLabel}
-                  </WaBadge>
+                  </wa-badge>
                 ) : null}
                 {selectedLetter?.pdfSrc ? (
-                  <WaButton
+                  <wa-button
                     appearance="plain"
                     className="pdf-button"
                     href={selectedLetter?.pdfSrc}
@@ -485,17 +459,17 @@ function Letters () {
                     target="_blank"
                   >
                     Open PDF
-                  </WaButton>
+                  </wa-button>
                 ) : null}
               </div>
             </div>
 
             {selectedLetter && selectedLetter.transcribedPageCount < selectedLetter.pageCount ? (
-              <WaCallout appearance="filled-outlined" size="small" variant="warning">
+              <wa-callout appearance="filled-outlined" size="small" variant="warning">
                 {selectedLetter.transcribedPageCount
                   ? 'Some pages are transcribed, but this letter is not yet complete.'
                   : 'This letter has been catalogued, but a transcription has not been added yet.'}
-              </WaCallout>
+              </wa-callout>
             ) : null}
 
             {selectedLetter?.pageCount ? (
@@ -530,7 +504,7 @@ function Letters () {
                       </figure>
 
                       <div className="scan-pager" aria-label="Page navigation">
-                        <WaButton
+                        <wa-button
                           appearance="plain"
                           className="scan-pager__button"
                           disabled={!hasPreviousPage}
@@ -539,11 +513,11 @@ function Letters () {
                           variant="neutral"
                         >
                           &lt;
-                        </WaButton>
+                        </wa-button>
                         <span className="scan-pager__status">
                           {selectedPageIndex + 1}/{selectedLetter.pageCount}
                         </span>
-                        <WaButton
+                        <wa-button
                           appearance="plain"
                           className="scan-pager__button"
                           disabled={!hasNextPage}
@@ -552,7 +526,7 @@ function Letters () {
                           variant="neutral"
                         >
                           &gt;
-                        </WaButton>
+                        </wa-button>
                       </div>
                     </>
                   ) : (
@@ -580,7 +554,7 @@ function Letters () {
                 No letters from {activeSender.label} have been added yet.
               </div>
             )}
-          </WaCard>
+          </wa-card>
         </section>
       </section>
     </section>
