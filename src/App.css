@@ -510,6 +510,22 @@
   background: var(--wa-archive-scan-surface);
 }
 
+.scan-stack__expand-button {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 5;
+}
+
+.scan-stack__expand-button::part(base) {
+  min-height: 32px;
+  min-width: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--wa-archive-line-soft);
+  background: color-mix(in srgb, var(--wa-archive-surface-panel-bright) 88%, transparent);
+  backdrop-filter: blur(2px);
+}
+
 .scan-pager {
   display: flex;
   justify-content: center;

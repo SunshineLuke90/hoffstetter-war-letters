@@ -124,6 +124,7 @@ function Letters () {
   const location = useLocation()
   const navigate = useNavigate()
   const [isTimelineCollapsed, setIsTimelineCollapsed] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const selection: Selection = {
     senderId: getSenderFromRouteParam(senderId),
@@ -454,6 +455,7 @@ function Letters () {
                   <wa-button
                     appearance="plain"
                     className="pdf-button"
+                    pill
                     href={selectedLetter?.pdfSrc}
                     rel="noreferrer"
                     target="_blank"
@@ -487,12 +489,44 @@ function Letters () {
                               key={`stack-${page.id}`}
                             >
                               {page.imageSrc ? (
-                                <img
-                                  alt={`${formatPageLabel(page)} from ${selectedLetter.dateLabel}`}
-                                  className="scan-image"
-                                  loading="lazy"
-                                  src={page.imageSrc}
-                                />
+                                <>
+                                  {index === 0 && (
+                                    <>
+                                      <wa-dialog
+                                        className="scan-image-dialog"
+                                        label='Expanded view of letter page'
+                                        open={isDialogOpen}
+                                        without-header
+                                        light-dismiss
+                                        onwa-after-hide={() => setIsDialogOpen(false)}
+                                        style={{ "--width": 'min(96svw, 40rem)', "--spacing": "8px" }}
+                                      >
+                                        <img
+                                          alt={`${formatPageLabel(page)} from ${selectedLetter.dateLabel}`}
+                                          className="scan-image"
+                                          src={page.imageSrc}
+                                        />
+                                      </wa-dialog>
+                                      <wa-button
+                                        appearance="plain"
+                                        className="scan-stack__expand-button"
+                                        onClick={() => setIsDialogOpen(true)}
+                                        size="small"
+                                        variant="neutral"
+                                        isIconButton={true}
+                                        pill
+                                      >
+                                        <wa-icon name="magnifying-glass" />
+                                      </wa-button>
+                                    </>
+                                  )}
+                                  <img
+                                    alt={`${formatPageLabel(page)} from ${selectedLetter.dateLabel}`}
+                                    className="scan-image"
+                                    loading="lazy"
+                                    src={page.imageSrc}
+                                  />
+                                </>
                               ) : (
                                 <div className="empty-pane">
                                   No scan image has been uploaded for this page.
