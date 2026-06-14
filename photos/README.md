@@ -12,6 +12,8 @@ Search
 --
 Photos should have some metadata.
 
-- People
-- Location
+- Accessible description of the photo
+  ex: Two men, in army attire, standing outside in an army barracks
+- Subject (not just the accessible description)
+  ex: Ollie and Overton in the barracks
 - Date
