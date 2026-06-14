@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview --outDir build/client",
     "convert:pdfs": "node tools/convertPdfs.js",
-    "reorder:pngs": "node tools/reorderPngs.js"
+    "reorder:pngs": "node tools/reorderPngs.js",
+    "import:transkribus-txt": "node tools/importTranskribusTxt.js"
   },
   "dependencies": {
     "@awesome.me/webawesome": "^3.6.0",

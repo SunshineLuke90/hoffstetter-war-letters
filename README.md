@@ -6,3 +6,13 @@ There are a few secondary goals to this project as well. One is to teach my pare
 I also wanted to learn how to train an AI model on the letters, to hopefully make it easy to scan and transcribe Ollie's handwriting. A big secondary portion of the project is just taking the digital files, and making smart choices about how they need to be formatted and stored so that they can be easily aggregated and used within a website. Once a website is built, it's something that could be shared with the entire family, in a way that everyone could easily digest.
 
 I have worked on much of this project with the assistance of various AI, including using the Transkribus tools for AI transcription, and using various models through GitHub Copilot to assist with the website design, and with creating helper tools for managing the heaps of files that inevitably get generated. My goal is that even though much of the project is fueled by AI (And would take 10x as long without the help of the AI transcriptions), I don't want the site to look like a garbled AI mess at the end of the day. 
+
+## Helper Tools
+
+This project includes three CLI helper tools for processing scans and transcripts:
+
+- `npm run convert:pdfs` - converts letter PDFs into date-based PNG folders.
+- `npm run reorder:pngs` - compacts and renumbers page PNG files.
+- `npm run import:transkribus-txt` - imports Transkribus `.txt` exports into matching letter date folders.
+
+Detailed flags, command usage, and examples are documented in [tools/README.md](tools/README.md).
