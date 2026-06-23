@@ -18,7 +18,7 @@
   --wa-focus-ring-style: solid;
   --wa-focus-ring-width: 2px;
   --wa-focus-ring-offset: 1px;
-
+  --wa-color-neutral-fill-normal: var(--wa-color-surface-raised);
   --wa-archive-text-strong: #1f1713;
   --wa-archive-line-soft: var(--wa-color-border-normal);
   --wa-archive-line-strong: var(--wa-color-border-loud);

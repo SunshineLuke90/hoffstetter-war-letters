@@ -588,6 +588,104 @@
   gap: 6px;
 }
 
+.photos-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.photo-card {
+  --photo-image-gap: 0.5rem;
+  position: relative;
+  width: 100%;
+  border: 1px solid var(--wa-archive-line-strong);
+  outline: 1px solid var(--wa-archive-line-soft);
+  outline-offset: -1px;
+  border-radius: 22px;
+  background: var(--wa-color-surface-raised);
+  box-shadow: var(--wa-archive-shadow-soft);
+  overflow: hidden;
+}
+
+.photo-card__media-wrap {
+  border-bottom: 1px solid var(--wa-archive-line-soft);
+  perspective: 1200px;
+  background: var(--wa-archive-surface-panel-strong);
+  padding: var(--photo-image-gap);
+}
+
+.photo-card__media-flipper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  transform-style: preserve-3d;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.photo-card__media-face {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transition: transform 520ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.photo-card__media-face--front {
+  transform: rotateY(0deg);
+}
+
+.photo-card__media-face img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--wa-archive-scan-surface);
+}
+
+.photo-card__media-face--back {
+  transform: rotateY(180deg);
+}
+
+.photo-card[data-flipped='true'] .photo-card__media-face--front {
+  transform: rotateY(-180deg);
+}
+
+.photo-card[data-flipped='true'] .photo-card__media-face--back {
+  transform: rotateY(0deg);
+}
+
+.photo-card__content {
+  display: grid;
+  gap: 14px;
+  padding: 1rem;
+}
+
+.photo-card__description {
+  margin: 0;
+  text-align: left;
+  line-height: 1.45;
+  color: var(--wa-color-text-normal);
+  max-width: 30ch;
+}
+
+.photo-card__date {
+  justify-self: end;
+  padding-right: 3.1rem;
+  color: var(--wa-color-text-quiet);
+  font-size: 0.82rem;
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.photo-card__flip-button {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+}
+
 @media (max-width: 1024px) {
 
   .page-layout,
@@ -627,6 +725,19 @@
 @media (max-width: 720px) {
   .app-shell {
     padding: 28px 14px 34px;
+  }
+
+  .photos-panel {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .photo-card__content {
+    padding: 0.85rem 0.85rem 0.9rem;
+  }
+
+  .photo-card__date {
+    padding-right: 2.95rem;
   }
 
   .hero-panel {
